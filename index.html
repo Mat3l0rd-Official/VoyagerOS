@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#070914" />
+  <title>Voyager — Explore the open web</title>
+
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap");
+
+    :root {
+      --bg: #070914;
+      --text: #f8f9ff;
+      --muted: #8992b1;
+      --subtle: #59617e;
+      --border: rgba(255,255,255,.1);
+      --primary: #8d6bff;
+      --primary-light: #b49cff;
+      --cyan: #35e6ca;
+      --pink: #ff78c9;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      overflow-x: hidden;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 72% 8%, rgba(141,107,255,.22), transparent 29rem),
+        radial-gradient(circle at 91% 78%, rgba(53,230,202,.1), transparent 25rem),
+        var(--bg);
+      font-family: "DM Sans", sans-serif;
+    }
+
+    body::before {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      content: "";
+      opacity: .25;
+      background-image:
+        linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+      background-size: 70px 70px;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    .orb {
+      position: fixed;
+      z-index: -1;
+      width: 420px;
+      height: 420px;
+      border-radius: 50%;
+      filter: blur(90px);
+      opacity: .13;
+      pointer-events: none;
+    }
+
+    .orb-one {
+      top: 12%;
+      left: 32%;
+      background: var(--primary);
+    }
+
+    .orb-two {
+      right: -120px;
+      bottom: 4%;
+      background: var(--cyan);
+    }
+
+    .app {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      position: fixed;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      width: 270px;
+      height: 100vh;
+      padding: 27px 18px;
+      border-right: 1px solid var(--border);
+      background: rgba(8,11,24,.8);
+      backdrop-filter: blur(24px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 0 12px 52px;
+      color: var(--text);
+      text-decoration: none;
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 1.18rem;
+      font-weight: 700;
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 13px;
+      background: linear-gradient(135deg, var(--primary), var(--cyan));
+      box-shadow: 0 10px 30px rgba(141,107,255,.35);
+      font-size: 1.25rem;
+    }
+
+    .label {
+      margin: 0 13px 12px;
+      color: var(--subtle);
+      font-size: .66rem;
+      font-weight: 700;
+      letter-spacing: 1.8px;
+      text-transform: uppercase;
+    }
+
+    .shortcut {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      width: 100%;
+      padding: 12px 13px;
+      margin-bottom: 5px;
+      color: var(--muted);
+      border: 1px solid transparent;
+      border-radius: 12px;
+      background: transparent;
+      text-align: left;
+      transition: .2s ease;
+    }
+
+    .shortcut:hover {
+      color: white;
+      background: rgba(255,255,255,.055);
+      transform: translateX(3px);
+    }
+
+    .shortcut.active {
+      color: white;
+      border-color: rgba(141,107,255,.25);
+      background: linear-gradient(
+        90deg,
+        rgba(141,107,255,.23),
+        rgba(141,107,255,.06)
+      );
+      box-shadow: inset 3px 0 var(--primary);
+    }
+
+    .shortcut-icon {
+      display: grid;
+      place-items: center;
+      width: 26px;
+      height: 26px;
+      color: var(--primary-light);
+      border-radius: 8px;
+      background: rgba(141,107,255,.12);
+      font-size: .82rem;
+      font-weight: bold;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 18px 13px 6px;
+      border-top: 1px solid var(--border);
+    }
+
+    .system-status {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: var(--cyan);
+      font-size: .78rem;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 14px var(--cyan);
+    }
+
+    .version {
+      margin-top: 7px;
+      color: var(--subtle);
+      font-size: .7rem;
+    }
+
+    /* Main content */
+    .content {
+      width: calc(100% - 270px);
+      min-height: 100vh;
+      margin-left: 270px;
+      padding: 28px 6vw 40px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 1180px;
+      margin: auto;
+      color: var(--muted);
+      font-size: .8rem;
+    }
+
+    .topbar-link {
+      color: var(--muted);
+      background: transparent;
+      font-size: .8rem;
+      transition: .2s;
+    }
+
+    .topbar-link:hover {
+      color: white;
+    }
+
+    .secure-badge {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(255,255,255,.035);
+    }
+
+    .secure-badge span {
+      color: var(--cyan);
+    }
+
+    main {
+      max-width: 980px;
+      margin: 105px auto 0;
+      text-align: center;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      gap: 9px;
+      margin-bottom: 23px;
+      color: var(--cyan);
+      font-size: .72rem;
+      font-weight: bold;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 900px;
+      margin: auto;
+      font-family: "Space Grotesk", sans-serif;
+      font-size: clamp(3.3rem, 8vw, 7.2rem);
+      line-height: .94;
+      letter-spacing: -6px;
+    }
+
+    h1 span {
+      color: transparent;
+      background: linear-gradient(
+        100deg,
+        var(--primary-light),
+        var(--primary),
+        var(--pink)
+      );
+      background-clip: text;
+      -webkit-background-clip: text;
+    }
+
+    .subtitle {
+      max-width: 590px;
+      margin: 29px auto 38px;
+      color: var(--muted);
+      line-height: 1.75;
+    }
+
+    .search-box {
+      display: flex;
+      gap: 10px;
+      max-width: 760px;
+      margin: auto;
+      padding: 8px;
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 19px;
+      background: rgba(18,23,44,.78);
+      box-shadow: 0 24px 90px rgba(0,0,0,.35);
+      backdrop-filter: blur(20px);
+    }
+
+    .search-icon {
+      display: grid;
+      place-items: center;
+      width: 52px;
+      color: var(--primary-light);
+      font-size: 1.2rem;
+    }
+
+    input {
+      flex: 1;
+      min-width: 0;
+      color: white;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      font-size: 1rem;
+    }
+
+    input::placeholder {
+      color: #66708e;
+    }
+
+    .launch {
+      padding: 0 25px;
+      color: white;
+      border-radius: 13px;
+      background: linear-gradient(135deg, #7959f2, #a47cff);
+      box-shadow: 0 8px 22px rgba(124,92,255,.25);
+      font-weight: bold;
+      transition: .2s;
+    }
+
+    .launch:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 13px 30px rgba(124,92,255,.4);
+    }
+
+    .suggestion {
+      margin-top: 14px;
+      color: var(--subtle);
+      font-size: .74rem;
+    }
+
+    .suggestion b {
+      color: var(--primary-light);
+      font-weight: 500;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-top: 75px;
+      text-align: left;
+    }
+
+    .card {
+      padding: 23px;
+      border: 1px solid var(--border);
+      border-radius: 17px;
+      background: rgba(255,255,255,.035);
+      transition: .25s ease;
+    }
+
+    .card:hover {
+      border-color: rgba(141,107,255,.4);
+      background: rgba(255,255,255,.065);
+      transform: translateY(-5px);
+    }
+
+    .card-icon {
+      display: grid;
+      place-items: center;
+      width: 40px;
+      height: 40px;
+      margin-bottom: 18px;
+      color: var(--primary-light);
+      border-radius: 11px;
+      background: rgba(141,107,255,.13);
+      font-size: 1.15rem;
+    }
+
+    .card h3 {
+      margin-bottom: 8px;
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 1rem;
+    }
+
+    .card p {
+      color: var(--muted);
+      font-size: .84rem;
+      line-height: 1.55;
+    }
+
+    footer {
+      margin-top: 70px;
+      color: var(--subtle);
+      font-size: .72rem;
+    }
+
+    /* About modal */
+    .about-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: rgba(3,5,14,.72);
+      opacity: 0;
+      visibility: hidden;
+      backdrop-filter: blur(12px);
+      transition: .25s ease;
+    }
+
+    .about-overlay.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .about-modal {
+      position: relative;
+      max-width: 520px;
+      padding: 38px;
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 24px;
+      background: linear-gradient(
+        145deg,
+        rgba(28,33,62,.97),
+        rgba(13,17,34,.97)
+      );
+      box-shadow: 0 30px 100px rgba(0,0,0,.5);
+      transform: translateY(18px) scale(.96);
+      transition: .25s ease;
+    }
+
+    .about-overlay.visible .about-modal {
+      transform: translateY(0) scale(1);
+    }
+
+    .close-about {
+      position: absolute;
+      top: 15px;
+      right: 18px;
+      width: 32px;
+      height: 32px;
+      color: var(--muted);
+      border-radius: 50%;
+      background: rgba(255,255,255,.06);
+      font-size: 1.4rem;
+    }
+
+    .close-about:hover {
+      color: white;
+      background: rgba(255,255,255,.14);
+    }
+
+    .about-icon {
+      display: grid;
+      place-items: center;
+      width: 52px;
+      height: 52px;
+      margin-bottom: 22px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--primary), var(--cyan));
+      box-shadow: 0 12px 30px rgba(141,107,255,.3);
+      font-size: 1.5rem;
+    }
+
+    .about-modal .eyebrow {
+      margin-bottom: 12px;
+    }
+
+    .about-modal h2 {
+      margin-bottom: 18px;
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 2rem;
+      letter-spacing: -1px;
+    }
+
+    .about-modal p {
+      margin-top: 12px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .about-features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin-top: 25px;
+    }
+
+    .about-features span {
+      padding: 8px 11px;
+      color: var(--primary-light);
+      border: 1px solid rgba(141,107,255,.2);
+      border-radius: 999px;
+      background: rgba(141,107,255,.1);
+      font-size: .76rem;
+    }
+
+    @media (max-width: 800px) {
+      .sidebar {
+        width: 78px;
+        padding: 22px 10px;
+      }
+
+      .brand {
+        justify-content: center;
+        margin: 0 0 45px;
+      }
+
+      .brand-name,
+      .label,
+      .shortcut-name,
+      .sidebar-footer {
+        display: none;
+      }
+
+      .shortcut {
+        justify-content: center;
+        padding: 13px 8px;
+      }
+
+      .content {
+        width: calc(100% - 78px);
+        margin-left: 78px;
+        padding: 22px 25px;
+      }
+
+      main {
+        margin-top: 90px;
+      }
+
+      .cards {
+        grid-template-columns: 1fr;
+        max-width: 520px;
+        margin-right: auto;
+        margin-left: auto;
+      }
+
+      h1 {
+        letter-spacing: -3px;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .topbar-link {
+        display: none;
+      }
+
+      main {
+        margin-top: 75px;
+      }
+
+      h1 {
+        font-size: clamp(3rem, 15vw, 5rem);
+      }
+
+      .search-box {
+        flex-direction: column;
+      }
+
+      .search-icon {
+        display: none;
+      }
+
+      input {
+        min-height: 48px;
+        padding: 0 12px;
+      }
+
+      .launch {
+        min-height: 52px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="orb orb-one"></div>
+  <div class="orb orb-two"></div>
+
+  <div class="app">
+    <aside class="sidebar">
+      <a href="#" class="brand">
+        <div class="brand-mark">✦</div>
+        <span class="brand-name">Voyager</span>
+      </a>
+
+      <div class="label">Navigate</div>
+
+      <button class="shortcut active" data-url="">
+        <span class="shortcut-icon">⌂</span>
+        <span class="shortcut-name">Home</span>
+      </button>
+
+      <button class="shortcut" data-url="https://www.google.com">
+        <span class="shortcut-icon">G</span>
+        <span class="shortcut-name">Google</span>
+      </button>
+
+      <button class="shortcut" data-url="https://www.youtube.com">
+        <span class="shortcut-icon">▶</span>
+        <span class="shortcut-name">YouTube</span>
+      </button>
+
+      <button class="shortcut" data-url="https://www.wikipedia.org">
+        <span class="shortcut-icon">W</span>
+        <span class="shortcut-name">Wikipedia</span>
+      </button>
+
+      <button class="shortcut" data-url="https://www.reddit.com">
+        <span class="shortcut-icon">●</span>
+        <span class="shortcut-name">Reddit</span>
+      </button>
+
+      <div class="label" style="margin-top: 30px;">Workspace</div>
+
+      <button class="shortcut" data-url="https://github.com">
+        <span class="shortcut-icon">⌘</span>
+        <span class="shortcut-name">GitHub</span>
+      </button>
+
+      <button class="shortcut" data-url="https://www.twitch.tv">
+        <span class="shortcut-icon">▣</span>
+        <span class="shortcut-name">Twitch</span>
+      </button>
+
+      <div class="sidebar-footer">
+        <div class="system-status">
+          <span class="status-dot"></span>
+          System online
+        </div>
+        <div class="version">Voyager v1.0.0</div>
+      </div>
+    </aside>
+
+    <section class="content">
+      <header class="topbar">
+        <button class="topbar-link" id="aboutButton">
+          About Voyager
+        </button>
+
+        <div class="secure-badge">
+          <span>●</span>
+          Ready for launch
+        </div>
+      </header>
+
+      <main>
+        <div class="eyebrow">Explore the web differently</div>
+
+        <h1>Your gateway to the <span>open web.</span></h1>
+
+        <p class="subtitle">
+          A faster, cleaner, and more focused way to reach the places
+          that matter most to you.
+        </p>
+
+        <form class="search-box" id="voyagerForm">
+          <div class="search-icon">⌕</div>
+
+          <input
+            id="urlInput"
+            type="text"
+            placeholder="Enter a website URL..."
+            autocomplete="off"
+            spellcheck="false"
+          />
+
+          <button class="launch" type="submit">
+            Launch
+          </button>
+        </form>
+
+        <div class="suggestion">
+          Try <b>google.com</b>, <b>github.com</b>, or any website
+        </div>
+
+        <section class="cards">
+          <article class="card">
+            <div class="card-icon">ϟ</div>
+            <h3>Fast navigation</h3>
+            <p>
+              Reach your destination quickly with a simple,
+              streamlined interface.
+            </p>
+          </article>
+
+          <article class="card">
+            <div class="card-icon">◉</div>
+            <h3>Privacy focused</h3>
+            <p>
+              Keep your browsing experience focused and free
+              from unnecessary clutter.
+            </p>
+          </article>
+
+          <article class="card">
+            <div class="card-icon">✧</div>
+            <h3>Made for everywhere</h3>
+            <p>
+              A responsive interface that feels just as good
+              on mobile as desktop.
+            </p>
+          </article>
+        </section>
+
+        <footer>
+          © 2025 Voyager · Use responsibly and only with authorized services.
+        </footer>
+      </main>
+    </section>
+  </div>
+
+  <!-- About Voyager modal -->
+  <div class="about-overlay" id="aboutOverlay">
+    <div
+      class="about-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="aboutTitle"
+    >
+      <button class="close-about" id="closeAbout" aria-label="Close">
+        ×
+      </button>
+
+      <div class="about-icon">✦</div>
+
+      <div class="eyebrow">About Voyager</div>
+
+      <h2 id="aboutTitle">Explore the web differently.</h2>
+
+      <p>
+        Voyager is a clean, fast, and privacy-focused browsing interface
+        designed to make web access simple and distraction-free.
+      </p>
+
+      <p>
+        Use the search bar to launch any website, or select a shortcut
+        from the sidebar to instantly visit your favorite destinations.
+      </p>
+
+      <div class="about-features">
+        <span>⚡ Fast</span>
+        <span>◉ Privacy-focused</span>
+        <span>✧ Responsive</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const input = document.getElementById("urlInput");
+    const form = document.getElementById("voyagerForm");
+    const shortcuts = document.querySelectorAll(".shortcut");
+
+    // Automatically open shortcut websites
+    shortcuts.forEach(shortcut => {
+      shortcut.addEventListener("click", () => {
+        shortcuts.forEach(item => item.classList.remove("active"));
+        shortcut.classList.add("active");
+
+        const url = shortcut.dataset.url;
+
+        // Home returns to the Voyager homepage
+        if (!url) {
+          input.value = "";
+          input.focus();
+          return;
+        }
+
+        // Open the selected website in a new tab
+        window.open(url, "_blank", "noopener,noreferrer");
+      });
+    });
+
+    // Open manually entered websites
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+
+      let url = input.value.trim();
+
+      if (!url) {
+        alert("Please enter a website URL.");
+        return;
+      }
+
+      if (!/^https?:\/\//i.test(url)) {
+        url = "https://" + url;
+      }
+
+      window.open(url, "_blank", "noopener,noreferrer");
+    });
+
+    // About Voyager modal
+    const aboutButton = document.getElementById("aboutButton");
+    const aboutOverlay = document.getElementById("aboutOverlay");
+    const closeAbout = document.getElementById("closeAbout");
+
+    aboutButton.addEventListener("click", () => {
+      aboutOverlay.classList.add("visible");
+    });
+
+    closeAbout.addEventListener("click", () => {
+      aboutOverlay.classList.remove("visible");
+    });
+
+    aboutOverlay.addEventListener("click", event => {
+      if (event.target === aboutOverlay) {
+        aboutOverlay.classList.remove("visible");
+      }
+    });
+
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape") {
+        aboutOverlay.classList.remove("visible");
+      }
+    });
+  </script>
+</body>
+</html>
